@@ -2,6 +2,9 @@ package set10107;
 
 import java.util.Random;
 
+import computations.Crossover;
+import computations.Mutation;
+import computations.Tournament;
 import modelP.JSSP;
 import modelP.Problem;
 
@@ -79,118 +82,39 @@ public class JsspExample {
 			population[i] = JSSP.getRandomSolution(problem);
 		}
 		
-		int generations = 5;
-		for (int g=0; g<generations; g++) {
-			// create a tournament
-			int tournamentSize = 10;
-			int[] potentialParents = new int[tournamentSize];
-			
-			Random rand = new Random();
-			int[] crossoverCandidates = new int[2];
-	
-			for (int t=0; t<2; t++) {
-				
-				for (int i=0; i<tournamentSize; i++) {
-					potentialParents[i] = rand.nextInt(populationSize);
-				}
-				
-				// save the fitness of the first potential parent
-				int bestFitness = JSSP.getFitness(population[potentialParents[0]], problem);
-				
-				int worstFitness = JSSP.getFitness(population[potentialParents[0]], problem);
-				int worstCandidate = 0;
-				
-				// choose the parent with the best fitness
-				for (int i=0; i<tournamentSize; i++) {
-					if (JSSP.getFitness(population[potentialParents[i]], problem) < bestFitness) {
-						bestFitness = JSSP.getFitness(population[potentialParents[i]], problem);
-						crossoverCandidates[t] = potentialParents[i];
-					}
-					
-					if (JSSP.getFitness(population[potentialParents[i]], problem) > worstFitness) {
-						worstFitness = JSSP.getFitness(population[potentialParents[i]], problem);
-						worstCandidate = potentialParents[i];
-					}
-				}
-				
-				// remove the worst candidate from the population
-				//population = removeCandidate(population, worstCandidate);
-			}
-			
-			int candidate1Fitness = JSSP.getFitness(population[crossoverCandidates[0]], problem);
-			int candidate2Fitness = JSSP.getFitness(population[crossoverCandidates[1]], problem);
-			
-			int chosenParent = crossoverCandidates[0];
-			int bestFitness = candidate1Fitness;
-			
-			
-			if (bestFitness > candidate2Fitness) {
-				bestFitness = candidate2Fitness;
-				chosenParent = crossoverCandidates[1];
-			}
-			
-			//System.out.println("Candidate 1 for the crossover is " + crossoverCandidates[0] + " with a fitness of: " + candidate1Fitness);
-			//System.out.println("Candidate 2 for the crossover is " + crossoverCandidates[1] + " with a fitness of: " + candidate2Fitness);
-	
-			// crossover
-			int crossovers = 720;
-			int[][] chosen = new int[population[crossoverCandidates[0]].length][population[crossoverCandidates[0]][0].length];
-			
-			chosen = population[crossoverCandidates[0]].clone();
-			for (int i=0; i<crossovers; i++) {
-				int randMachine = rand.nextInt(population[crossoverCandidates[0]].length);
-				
-				int[] temp = population[crossoverCandidates[0]][randMachine];
-				population[crossoverCandidates[0]][randMachine] = population[crossoverCandidates[1]][randMachine];
-				population[crossoverCandidates[1]][randMachine] = temp;
-				
-				if (JSSP.getFitness(population[crossoverCandidates[0]], problem) < bestFitness) {
-					bestFitness = JSSP.getFitness(population[crossoverCandidates[0]], problem);
-					chosenParent = crossoverCandidates[0];
-				}
-				
-				if (JSSP.getFitness(population[crossoverCandidates[1]], problem) < bestFitness) {
-					bestFitness = JSSP.getFitness(population[crossoverCandidates[1]], problem);
-					chosenParent = crossoverCandidates[1];
-				}
-			}
-			
-			chosen = population[chosenParent].clone();
+		Tournament tournament = new Tournament(20, problem, population);
 		
-			//System.out.println("After the crossover the candidate has a fitness of: " + JSSP.getFitness(chosen, problem));
-			
-			// Mutation
-			int mutationTimes = 10;
-			
-			for (int i=0; i<mutationTimes; i++) {
-				int machineReplacement1 = rand.nextInt(chosen.length);
-				int machineReplacement2 = rand.nextInt(chosen.length);
-	
-				int[] temp = chosen[machineReplacement1];
-				chosen[machineReplacement1] = chosen[machineReplacement2];
-				chosen[machineReplacement2] = temp;
-				
-				for (int j=0; j<mutationTimes; j++) {
-					int jobReplacement1 = rand.nextInt(chosen[0].length);
-					int jobReplacement2 = rand.nextInt(chosen[0].length);
-					
-					int tempJob = chosen[machineReplacement1][jobReplacement1];
-					chosen[machineReplacement1][jobReplacement1] = chosen[machineReplacement1][jobReplacement2]; 
-					chosen[machineReplacement1][jobReplacement2] = tempJob;
-					
-					if (JSSP.getFitness(chosen, problem) < bestFitness) {
-						bestFitness = JSSP.getFitness(chosen, problem);
-						population[chosenParent] = chosen.clone();						
-					}
-				}
-				
-			}
-			
-			
-			System.out.println("After " + mutationTimes + " mutations, the fitness is: " + JSSP.getFitness(population[chosenParent], problem));
-			System.out.println("Generation " + g + " completed.");
+		// run the tournament multiple times
+		for (int i=0; i<2; i++) {
+			tournament.startTournament();
 		}
 		
+		// Do the crossover (permutation)
+		Crossover crossover = new Crossover(720, problem, population);
+		
+		int[] crossoverCandidates = new int[2];
+		crossoverCandidates[0] = tournament.getWinners().get(0);
+		crossoverCandidates[1] = tournament.getWinners().get(1);
+		
+		System.out.println("The tournament winners have the fitness " + JSSP.getFitness(population[crossoverCandidates[0]], problem) + 
+							" and " + JSSP.getFitness(population[crossoverCandidates[1]], problem));
+		
+		int[][] chosen = crossover.permutate(crossoverCandidates);
+		System.out.println("After the crossover the candidate has " + JSSP.getFitness(chosen, problem) + " fitness");
+		
+		
+		// mutate the crossover candidate
+		Mutation mutation = new Mutation(720, problem, population);
+		int[][] mutatedCandidate = mutation.mutate(chosen);
+		
+		// replace the mutated candidate in the population
+		Random rand = new Random();
+		int replacement = tournament.getLosers().get(rand.nextInt(tournament.getLosers().size()));
+		
+		population[replacement] = mutatedCandidate;
+		
+		
+		// get the best overall candidate
 		int bestOverallFitness = JSSP.getFitness(population[0], problem);
 		int bestOverallCandidate = 0;
 		
