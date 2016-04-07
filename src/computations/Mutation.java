@@ -17,16 +17,14 @@ public class Mutation {
 	
 	private int mutationTimes;
 	private Problem problem;
-	private int[][][] population;
 	private int[][] chosen;
 	
 	/*
 	 * Constructor
 	 */
-	public Mutation(int mutationTimes, Problem problem, int[][][] population) {
+	public Mutation(int mutationTimes, Problem problem) {
 		this.mutationTimes = mutationTimes;
 		this.problem = problem;
-		this.population = population;
 	}
 	
 	// ---------------------------------------------

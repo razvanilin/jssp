@@ -75,6 +75,51 @@ public class Tournament {
 	}
 	
 	// ---------------------------------------------
+	public int startTournamentProportionate() {
+		
+		// create a tournament
+		int[] potentialParents = new int[tournamentSize];
+		
+		Random rand = new Random();
+		
+		int winner = 0;
+		int loser = 0;
+			
+		for (int i=0; i<tournamentSize; i++) {
+			potentialParents[i] = rand.nextInt(population.length);
+		}
+		
+		// calculate the sum of the tournament's fitness
+		long totalFitness = 0;
+		
+		for (int i = 0; i<tournamentSize; i++) {
+			totalFitness += JSSP.getFitness(population[potentialParents[i]], problem);
+		}
+		
+		// get the candidate based on the proportional fitness value
+		double bestProportion = 0.000001f;
+		double worstProportion = 1f;
+		
+		// choose the parent with the best fitness
+		for (int i=0; i<tournamentSize; i++) {
+			if (JSSP.getFitness(population[potentialParents[i]], problem)/totalFitness > bestProportion) {
+				bestProportion = JSSP.getFitness(population[potentialParents[i]], problem)/totalFitness;
+				winner = potentialParents[i];
+			}
+			
+			if (JSSP.getFitness(population[potentialParents[i]], problem)/totalFitness < worstProportion) {
+				worstProportion = JSSP.getFitness(population[potentialParents[i]], problem)/totalFitness;
+				loser = potentialParents[i];
+			}
+		}
+		
+		winnerList.add(winner);
+		loserList.add(loser);
+		
+		return winner;
+	}
+	
+	// ---------------------------------------------
 	public ArrayList<Integer> getWinners() {
 		return winnerList;
 	}

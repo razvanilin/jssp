@@ -37,13 +37,13 @@ public class Crossover {
 		
 		Random rand =  new Random();
 		int[][][] machines = new int[2][6][6];
-		machines[0] = population[crossoverCandidates[0]];
-		machines[1] = population[crossoverCandidates[1]];
+		machines[0] = copyOf(population[crossoverCandidates[0]]);
+		machines[1] = copyOf(population[crossoverCandidates[1]]);
 		
 		int bestFitness = JSSP.getFitness(machines[1], problem);
 		int chosenParent = 1;
 		
-		if (JSSP.getFitness(population[crossoverCandidates[0]], problem) < JSSP.getFitness(machines[1], problem)) {
+		if (JSSP.getFitness(machines[0], problem) < JSSP.getFitness(machines[1], problem)) {
 			bestFitness = JSSP.getFitness(machines[0], problem);
 			chosenParent = 0;
 		}

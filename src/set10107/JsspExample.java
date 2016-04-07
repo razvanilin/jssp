@@ -1,5 +1,6 @@
 package set10107;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import computations.Crossover;
@@ -19,8 +20,9 @@ public class JsspExample {
 		int problemNumber = Integer.parseInt(args[0]);
 		int generations = Integer.parseInt(args[1]);
 		int populationSize = Integer.parseInt(args[2]);
-		int crossovers = Integer.parseInt(args[3]);
-		int mutations = Integer.parseInt(args[4]);
+		int tournamentSize = Integer.parseInt(args[3]);
+		int crossovers = Integer.parseInt(args[4]);
+		int mutations = Integer.parseInt(args[5]);
 		
 		Problem problem = JSSP.getProblem(problemNumber);		
 	
@@ -88,7 +90,7 @@ public class JsspExample {
 		
 		for (int gen = 0; gen<generations; gen++) {
 			
-			Tournament tournament = new Tournament(20, problem, population);
+			Tournament tournament = new Tournament(tournamentSize, problem, population);
 			
 			// run the tournament multiple times
 			for (int i=0; i<2; i++) {
@@ -106,14 +108,15 @@ public class JsspExample {
 			
 			
 			// mutate the crossover candidate
-			Mutation mutation = new Mutation(mutations, problem, population);
+			Mutation mutation = new Mutation(mutations, problem);
 			int[][] mutatedCandidate = mutation.mutate(chosen);
 			
 			// replace the mutated candidate in the population
 			Random rand = new Random();
 			int replacement = tournament.getLosers().get(rand.nextInt(tournament.getLosers().size()));
 			
-			population[replacement] = mutatedCandidate;
+			if (mutatedCandidate != null)
+				population[replacement] = copyOf(mutatedCandidate);
 			
 			
 			// get the best overall candidate
@@ -127,15 +130,23 @@ public class JsspExample {
 				}
 			}
 			
-			System.out.println("JSSP: generation-" + gen + ",fitness-" + bestOverallFitness);
+			System.out.println("JSSP: generation " + gen + "-fitness " + bestOverallFitness + "-solution "+jsonify(population[bestOverallCandidate]));
+//			JSSP.printSolution(population[bestOverallCandidate], problem);
 			
-			String filename = JSSP.saveSolution(population[bestOverallCandidate], problem);
+			//String filename = JSSP.saveSolution(population[bestOverallCandidate], problem);
 			//JSSP.printSolution(population[bestOverallCandidate], problem);
 			//JSSP.displaySolution(filename);
 		}
-
+		
 	}
 	
+	public static int[][] copyOf(int[][] original) {
+	    int[][] copy = new int[original.length][];
+	    for (int i = 0; i < original.length; i++) {
+	        copy[i] = Arrays.copyOf(original[i], original.length);
+	    }
+	    return copy;
+	}
 	
 	public static int[][][] removeCandidate(int[][][] population, int candidate) {
 		int [][][] newPopulation = new int[population.length][population[0].length][population[0][0].length];
@@ -146,7 +157,28 @@ public class JsspExample {
 			}
 		}
 		
-		return newPopulation;
+		return newPopulation;	
+	}
+	
+	public static String jsonify(int[][] solution) {
+		String json = "[";
+		for (int i = 0; i<solution.length; i++) {
+			json+="[";
+			for (int j=0; j<solution[i].length; j++) {
+				json+= "" + solution[i][j] + ",";
+				
+				if (j == solution[i].length-1) {
+					json = json.substring(0, json.length()-1);
+				}
+			}
+			json+="],";
+			
+			if (i == solution.length-1) {
+				json = json.substring(0, json.length()-1);
+			}
+		}
 		
+		json += "]";
+		return json;
 	}
 }
