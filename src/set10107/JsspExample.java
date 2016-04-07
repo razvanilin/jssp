@@ -15,11 +15,17 @@ public class JsspExample {
 		/**
 		 * Get a Problem instance using the static JSSP class in the range [1-142]
 		 */
-		Problem problem = JSSP.getProblem(86);		
+		
+		int problemNumber = Integer.parseInt(args[0]);
+		int generations = Integer.parseInt(args[1]);
+		int populationSize = Integer.parseInt(args[2]);
+		int crossovers = Integer.parseInt(args[3]);
+		int mutations = Integer.parseInt(args[4]);
+		
+		Problem problem = JSSP.getProblem(problemNumber);		
 	
 		//print problem to std.out
-		JSSP.printProblem(problem);
-		
+		//JSSP.printProblem(problem);
 				
 		/**
 		 * Get a randomly initialised solution for the problem
@@ -75,61 +81,58 @@ public class JsspExample {
 		/**
 		 * Create population 
 		 */
-		
-		int populationSize = 20;
 		int[][][] population = new int[populationSize][problem.getNumberOfMachines()][problem.getNumberOfJobs()];
 		for(int i = 0; i < populationSize; i++){
 			population[i] = JSSP.getRandomSolution(problem);
 		}
 		
-		Tournament tournament = new Tournament(20, problem, population);
-		
-		// run the tournament multiple times
-		for (int i=0; i<2; i++) {
-			tournament.startTournament();
-		}
-		
-		// Do the crossover (permutation)
-		Crossover crossover = new Crossover(720, problem, population);
-		
-		int[] crossoverCandidates = new int[2];
-		crossoverCandidates[0] = tournament.getWinners().get(0);
-		crossoverCandidates[1] = tournament.getWinners().get(1);
-		
-		System.out.println("The tournament winners have the fitness " + JSSP.getFitness(population[crossoverCandidates[0]], problem) + 
-							" and " + JSSP.getFitness(population[crossoverCandidates[1]], problem));
-		
-		int[][] chosen = crossover.permutate(crossoverCandidates);
-		System.out.println("After the crossover the candidate has " + JSSP.getFitness(chosen, problem) + " fitness");
-		
-		
-		// mutate the crossover candidate
-		Mutation mutation = new Mutation(720, problem, population);
-		int[][] mutatedCandidate = mutation.mutate(chosen);
-		
-		// replace the mutated candidate in the population
-		Random rand = new Random();
-		int replacement = tournament.getLosers().get(rand.nextInt(tournament.getLosers().size()));
-		
-		population[replacement] = mutatedCandidate;
-		
-		
-		// get the best overall candidate
-		int bestOverallFitness = JSSP.getFitness(population[0], problem);
-		int bestOverallCandidate = 0;
-		
-		for (int i=0; i<population.length; i++) {
-			if (JSSP.getFitness(population[i], problem) < bestOverallFitness) {
-				bestOverallFitness = JSSP.getFitness(population[i], problem);
-				bestOverallCandidate = i;
+		for (int gen = 0; gen<generations; gen++) {
+			
+			Tournament tournament = new Tournament(20, problem, population);
+			
+			// run the tournament multiple times
+			for (int i=0; i<2; i++) {
+				tournament.startTournament();
 			}
+			
+			// Do the crossover (permutation)
+			Crossover crossover = new Crossover(crossovers, problem, population);
+			
+			int[] crossoverCandidates = new int[2];
+			crossoverCandidates[0] = tournament.getWinners().get(0);
+			crossoverCandidates[1] = tournament.getWinners().get(1);
+			
+			int[][] chosen = crossover.permutate(crossoverCandidates);
+			
+			
+			// mutate the crossover candidate
+			Mutation mutation = new Mutation(mutations, problem, population);
+			int[][] mutatedCandidate = mutation.mutate(chosen);
+			
+			// replace the mutated candidate in the population
+			Random rand = new Random();
+			int replacement = tournament.getLosers().get(rand.nextInt(tournament.getLosers().size()));
+			
+			population[replacement] = mutatedCandidate;
+			
+			
+			// get the best overall candidate
+			int bestOverallFitness = JSSP.getFitness(population[0], problem);
+			int bestOverallCandidate = 0;
+			
+			for (int i=0; i<population.length; i++) {
+				if (JSSP.getFitness(population[i], problem) < bestOverallFitness) {
+					bestOverallFitness = JSSP.getFitness(population[i], problem);
+					bestOverallCandidate = i;
+				}
+			}
+			
+			System.out.println("JSSP: generation-" + gen + ",fitness-" + bestOverallFitness);
+			
+			String filename = JSSP.saveSolution(population[bestOverallCandidate], problem);
+			//JSSP.printSolution(population[bestOverallCandidate], problem);
+			//JSSP.displaySolution(filename);
 		}
-		
-		System.out.println("The best overall candidate has a fitness of " + bestOverallFitness);
-		
-		String filename = JSSP.saveSolution(population[bestOverallCandidate], problem);
-		JSSP.printSolution(population[bestOverallCandidate], problem);
-		JSSP.displaySolution(filename);
 
 	}
 	

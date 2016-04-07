@@ -47,7 +47,6 @@ public class Tournament {
 			
 		for (int i=0; i<tournamentSize; i++) {
 			potentialParents[i] = rand.nextInt(population.length);
-			System.out.println("Candidate with fitness: " + JSSP.getFitness(population[potentialParents[i]], problem));
 		}
 		
 		// save the fitness of the first potential parent

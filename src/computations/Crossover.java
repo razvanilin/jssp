@@ -4,6 +4,7 @@
 package computations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import modelP.JSSP;
@@ -36,17 +37,18 @@ public class Crossover {
 		
 		Random rand =  new Random();
 		int[][][] machines = new int[2][6][6];
-		machines[0] = population[crossoverCandidates[0]].clone();
-		machines[1] = population[crossoverCandidates[1]].clone();
+		machines[0] = population[crossoverCandidates[0]];
+		machines[1] = population[crossoverCandidates[1]];
 		
 		int bestFitness = JSSP.getFitness(machines[1], problem);
-		System.out.println("Best fitness before crossover: " + bestFitness);
-		int chosenParent = crossoverCandidates[1];
+		int chosenParent = 1;
 		
 		if (JSSP.getFitness(population[crossoverCandidates[0]], problem) < JSSP.getFitness(machines[1], problem)) {
 			bestFitness = JSSP.getFitness(machines[0], problem);
-			chosenParent = crossoverCandidates[0];
+			chosenParent = 0;
 		}
+		
+//		System.out.println("Before Crossover the fitness is: " + bestFitness);
 		
 		// crossover
 		
@@ -68,8 +70,17 @@ public class Crossover {
 			}
 		}
 		
-		System.out.println("Best fitness after crossover: " + JSSP.getFitness(machines[chosenParent], problem));
+//		System.out.println("After the crossover the fitness is: " + JSSP.getFitness(machines[chosenParent], problem));
+//		System.out.println();
 		
 		return machines[chosenParent];
+	}
+	
+	public int[][] copyOf(int[][] original) {
+	    int[][] copy = new int[original.length][];
+	    for (int i = 0; i < original.length; i++) {
+	        copy[i] = Arrays.copyOf(original[i], original.length);
+	    }
+	    return copy;
 	}
 }

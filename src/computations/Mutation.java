@@ -3,6 +3,7 @@
  */
 package computations;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import modelP.JSSP;
@@ -17,6 +18,7 @@ public class Mutation {
 	private int mutationTimes;
 	private Problem problem;
 	private int[][][] population;
+	private int[][] chosen;
 	
 	/*
 	 * Constructor
@@ -32,9 +34,10 @@ public class Mutation {
 		
 		Random rand = new Random();
 		int[][] mutationCandidate = candidate.clone();
-		int[][] chosen = null;
+		//int[][] chosen = null;
 		
 		int bestFitness = JSSP.getFitness(mutationCandidate, problem);
+		
 		
 		for (int i=0; i<mutationTimes; i++) {
 			int machineReplacement1 = rand.nextInt(mutationCandidate.length);
@@ -54,14 +57,20 @@ public class Mutation {
 				
 				if (JSSP.getFitness(mutationCandidate, problem) < bestFitness) {
 					bestFitness = JSSP.getFitness(mutationCandidate, problem);
-					chosen = mutationCandidate.clone();						
+					chosen = copyOf(mutationCandidate);						
 				}
 			}
 			
 		}
-		
-		System.out.println("After " + (mutationTimes*mutationTimes) + " mutations, the fitness is: " + JSSP.getFitness(chosen, problem));
-		
+				
 		return chosen;
+	}
+	
+	private int[][] copyOf(int[][] original) {
+	    int[][] copy = new int[original.length][];
+	    for (int i = 0; i < original.length; i++) {
+	        copy[i] = Arrays.copyOf(original[i], original.length);
+	    }
+	    return copy;
 	}
 }
