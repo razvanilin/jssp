@@ -88,36 +88,45 @@ public class JsspExample {
 			population[i] = JSSP.getRandomSolution(problem);
 		}
 		
+		Tournament tournament = new Tournament(tournamentSize, problem, population);
+		Crossover crossover = new Crossover(crossovers, problem, population);
+		Mutation mutation = new Mutation(mutations, problem);
+		int fitnessChecker = 0;
+		int checkerCounter = 0;
+		
 		for (int gen = 0; gen<generations; gen++) {
 			
-			Tournament tournament = new Tournament(tournamentSize, problem, population);
+			//refresh the tournament lists if the fitness is stuck
+			if (checkerCounter == 5)
+				tournament.refreshLists();
 			
 			// run the tournament multiple times
-			for (int i=0; i<2; i++) {
+			for (int i=0; i<3; i++) {
 				tournament.startTournament();
 			}
 			
 			// Do the crossover (permutation)
-			Crossover crossover = new Crossover(crossovers, problem, population);
+			Random rand = new Random();
 			
 			int[] crossoverCandidates = new int[2];
-			crossoverCandidates[0] = tournament.getWinners().get(0);
-			crossoverCandidates[1] = tournament.getWinners().get(1);
+			crossoverCandidates[0] = tournament.getWinners().get(rand.nextInt(tournament.getWinners().size()));
+			crossoverCandidates[1] = tournament.getWinners().get(rand.nextInt(tournament.getWinners().size()));
 			
 			int[][] chosen = crossover.permutate(crossoverCandidates);
 			
 			
 			// mutate the crossover candidate
-			Mutation mutation = new Mutation(mutations, problem);
 			int[][] mutatedCandidate = mutation.mutate(chosen);
 			
 			// replace the mutated candidate in the population
-			Random rand = new Random();
-			int replacement = tournament.getLosers().get(rand.nextInt(tournament.getLosers().size()));
-			
-			if (mutatedCandidate != null)
-				population[replacement] = copyOf(mutatedCandidate);
-			
+			if (tournament.getLosers().size() > checkerCounter) {
+				for (int los=0; los<tournament.getLosers().size() - checkerCounter; los++) {
+					int replacement = tournament.getLosers().get(rand.nextInt(tournament.getLosers().size()));
+				
+					if (mutatedCandidate != null)
+						population[replacement] = copyOf(mutatedCandidate);
+				}
+			}
 			
 			// get the best overall candidate
 			int bestOverallFitness = JSSP.getFitness(population[0], problem);
@@ -130,6 +139,10 @@ public class JsspExample {
 				}
 			}
 			
+			if (fitnessChecker == bestOverallCandidate) checkerCounter++;
+			else checkerCounter = 0;
+			
+			fitnessChecker = bestOverallFitness;
 			System.out.println("JSSP: generation " + gen + "-fitness " + bestOverallFitness + "-solution "+jsonify(population[bestOverallCandidate]));
 //			JSSP.printSolution(population[bestOverallCandidate], problem);
 			
